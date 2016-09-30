@@ -13,8 +13,8 @@
 5. Follwing dci.sh to start concourse in docker
 6. Check things are running:
 *$ docker ps
-*CONTAINER ID        IMAGE                 COMMAND                  CREATED             STATUS              PORTS                    NAMES
-*894a1124d72e        concourse/concourse   "/usr/local/bin/dumb-"   38 seconds ago      Up 37 seconds                                dci_concourse-worker_1
-*fc7642edbbb3        concourse/concourse   "/usr/local/bin/dumb-"   39 seconds ago      Up 38 seconds       0.0.0.0:8080->8080/tcp   dci_concourse-web_1
-*f4e45c1ffeea        postgres:9.6          "/docker-entrypoint.s"   40 seconds ago      Up 39 seconds       5432/tcp                 dci_concourse-db_1
+_CONTAINER ID        IMAGE                 COMMAND                  CREATED             STATUS              PORTS                    NAMES
+_894a1124d72e        concourse/concourse   "/usr/local/bin/dumb-"   38 seconds ago      Up 37 seconds                                dci_concourse-worker_1
+_fc7642edbbb3        concourse/concourse   "/usr/local/bin/dumb-"   39 seconds ago      Up 38 seconds       0.0.0.0:8080->8080/tcp   dci_concourse-web_1
+_f4e45c1ffeea        postgres:9.6          "/docker-entrypoint.s"   40 seconds ago      Up 39 seconds       5432/tcp                 dci_concourse-db_1
 
