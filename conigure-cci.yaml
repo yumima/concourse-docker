@@ -1,0 +1,42 @@
+# Launch instances from a control node, runs some tasks on the new instances,
+# Install docker, docker-compose, concourse docker image 
+
+- name: configure concourse server
+  hosts: cci 
+  gather_facts: no
+
+  vars:
+    machine_type: n1-standard-1 # default
+    image: ubuntu-1604-xenial-v20160930
+    service_account_email: "{{ lookup('env', 'GCE_EMAIL') }}"
+    credentials_file: "{{ lookup('env', 'GCE_CREDENTIALS_FILE_PATH') }}"
+    project_id: "{{ lookup('env', 'GCE_PROJECT') }}"
+
+  tasks:
+
+    - name: Install Ansible
+      apt: pkg=ansible state=latest
+      sudo: True
+
+    - name: Install docker 
+      apt: pkg=docker state=latest
+      sudo: True
+
+    - name: Install docker-compose 
+      apt: pkg=docker-compose state=latest
+      sudo: True
+
+    - name: allow port 8080
+      local_action: gce_net
+      args:
+        name: default
+        fwname: allow-http
+        allowed: tcp:80,8080
+        ipv4_range: 0.0.0.0/24
+        service_account_email: "{{ lookup('env', 'GCE_EMAIL') }}"
+        credentials_file: "{{ lookup('env', 'GCE_CREDENTIALS_FILE_PATH') }}"
+        project_id: "{{ lookup('env', 'GCE_PROJECT') }}"
+
+  roles:
+     #- start-docker [tbd]
+     #- start-concourse [tbd]

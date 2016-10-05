@@ -1,0 +1,41 @@
+# Launch instances from a control node, runs some tasks on the new instances,
+# Install docker, docker-compose, concourse docker image 
+- name: boot concourse server
+  hosts: localhost
+  connection: local
+  gather_facts: no
+
+  vars:
+    names: concourse-server
+    machine_type: n1-standard-1
+    image: ubuntu-1604-xenial-v20160930
+    zone: us-west1-a
+
+  tasks:
+   - name: source env file
+     shell: source ./env.sh
+
+   - name: Launch instances
+     gce:
+         instance_names: cci 
+         machine_type: "{{ machine_type }}"
+         image: "{{ image }}"
+         service_account_email: "{{ lookup('env', 'GCE_EMAIL') }}"
+         credentials_file: "{{ lookup('env', 'GCE_CREDENTIALS_FILE_PATH') }}"
+         project_id: "{{ lookup('env', 'GCE_PROJECT') }}"
+     register: gce
+
+   - name: Wait for SSH to come up
+     wait_for: host={{ item.public_ip }} port=22 delay=10 timeout=90
+     with_items: gce.instance_data
+
+   - name: Add host to groupname
+     add_host: hostname={{ item.public_ip }} groupname=cci-docker
+     with_items: gce.instance_data
+
+#   - name: Add host public key to GCE instance
+#     local_action: shell gcutil --service_version="v1" --project={{ my-k8s-codelab-1384 }} ssh --zone={{ us-west1-a }} {{ cci }}
+#   *** this code is not working ***
+#
+   - name: show instance info
+     debug: var=gce_create_info
