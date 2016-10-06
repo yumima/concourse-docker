@@ -14,6 +14,14 @@
 
   tasks:
 
+    - name: Install Python
+      apt: pkg=python state=latest
+      sudo: True
+
+    - name: Install Python ipaddress module
+      apt: pkg=ipaddress state=latest
+      sudo: True
+
     - name: Install Ansible
       apt: pkg=ansible state=latest
       sudo: True
@@ -26,6 +34,20 @@
       apt: pkg=docker-compose state=latest
       sudo: True
 
+    - name: Install postgres
+      apt: pkg=postgresql state=latest
+      sudo: True
+
+    - name: start docker service
+      shell: sudo systemctl start docker
+
+    - name: install concourse/concourse docker image from docker hub
+      shell: docker pull concourse/concourse 
+      sudo: True
+
+    - copy:  src=./dci.sh dest=/home/yumima/dci.sh owner=yumima group=yumima mode=0755
+    - copy:  src=./docker-compose.yaml dest=/home/yumima/docker-compose.yaml owner=yumima group=yumima mode=0644
+
     - name: allow port 8080
       local_action: gce_net
       args:
@@ -37,6 +59,13 @@
         credentials_file: "{{ lookup('env', 'GCE_CREDENTIALS_FILE_PATH') }}"
         project_id: "{{ lookup('env', 'GCE_PROJECT') }}"
 
+    - name:  run dci to setup keys and start concourse
+      shell: cd /home/yumima; ./dci.sh
+
+    - name: start concourse docker
+      shell: docker-compose up -d
+      sudo: True
+      
   roles:
      #- start-docker [tbd]
      #- start-concourse [tbd]

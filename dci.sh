@@ -25,6 +25,4 @@ ssh-keygen -t rsa -f ./keys/worker/worker_key -N ''
 cp ./keys/worker/worker_key.pub ./keys/web/authorized_worker_keys
 cp ./keys/web/tsa_host_key.pub ./keys/worker
 
-export CONCOURSE_EXTERNAL_URL=http://104.198.97.102
-
-docker-compose up -d
+export CONCOURSE_EXTERNAL_URL=http://104.198.235.44
