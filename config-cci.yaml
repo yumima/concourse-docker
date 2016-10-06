@@ -11,20 +11,9 @@
     service_account_email: "{{ lookup('env', 'GCE_EMAIL') }}"
     credentials_file: "{{ lookup('env', 'GCE_CREDENTIALS_FILE_PATH') }}"
     project_id: "{{ lookup('env', 'GCE_PROJECT') }}"
+    user_home: "{{ lookup('env', 'USER_HOME') }}"
 
   tasks:
-
-    - name: Install Python
-      apt: pkg=python state=latest
-      sudo: True
-
-    - name: Install Python ipaddress module
-      apt: pkg=ipaddress state=latest
-      sudo: True
-
-    - name: Install Ansible
-      apt: pkg=ansible state=latest
-      sudo: True
 
     - name: Install docker 
       apt: pkg=docker state=latest
@@ -45,8 +34,8 @@
       shell: docker pull concourse/concourse 
       sudo: True
 
-    - copy:  src=./dci.sh dest=/home/yumima/dci.sh owner=yumima group=yumima mode=0755
-    - copy:  src=./docker-compose.yaml dest=/home/yumima/docker-compose.yaml owner=yumima group=yumima mode=0644
+    - copy: src=./dci.sh dest={{user_home}}/dci.sh
+    - copy: src=./template.yaml dest={{user_home}}/template.yaml
 
     - name: allow port 8080
       local_action: gce_net
@@ -55,12 +44,15 @@
         fwname: allow-http
         allowed: tcp:80,8080
         ipv4_range: 0.0.0.0/24
-        service_account_email: "{{ lookup('env', 'GCE_EMAIL') }}"
-        credentials_file: "{{ lookup('env', 'GCE_CREDENTIALS_FILE_PATH') }}"
-        project_id: "{{ lookup('env', 'GCE_PROJECT') }}"
+        service_account_email: "{{service_account_email}}"
+        credentials_file: "{{credentials_file}}"
+        project_id: "{{project_id}}"
 
     - name:  run dci to setup keys and start concourse
       shell: cd /home/yumima; ./dci.sh
+    
+    - name: generate docker-compose.yaml
+      shell: source -y dci.sh; rm -rf docker-compose.yaml; envsubst < "template.yaml" > "docker-compose.yaml"
 
     - name: start concourse docker
       shell: docker-compose up -d
