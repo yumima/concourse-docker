@@ -5,5 +5,6 @@
 3. source env.sh (all the information should be extrated from the json file)
 4. ansible-playbook -s create-cci.yaml, will create a server cci on GCE
 5  add group cci and IP to /etc/ansible/hosts
+6. add ~/.ssh/id_rsa.pub key to the VM via GUI (to be replaced with glcoud code)
 6. ansible-playbook -s config-cci.yaml, will configure concourse
-7. TODO: 1) parse json file, 2) add host key to instance at creation; 3) add roles to install concourse and start it
+
