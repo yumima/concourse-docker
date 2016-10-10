@@ -57,7 +57,15 @@
     - name: start concourse docker
       shell: docker-compose up -d
       sudo: True
-      
+
+    - name: install fly
+      get_url: 
+        url: http://104.198.235.44:8080/api/v1/cli?arch=amd64&platform=linux
+        dest: ./fly
+        mode: 0766
+
+    - copy: src=./hello-git.yaml dest={{user_home}}/hello-git.yaml
+
   roles:
      #- start-docker [tbd]
      #- start-concourse [tbd]
