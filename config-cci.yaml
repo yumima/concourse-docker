@@ -73,9 +73,6 @@
         mode: 0766
 
     - name: run hello-git pipeline
-#      shell: fly -t concourse login -c http://192.168.100.4:8080
-      shell: fly -t concourse set-pipeline --pipeline hello-git --config ./staas-playground/concourse-docker/hello-git.yaml --load-vars-from ./staas-playground/ci/credentials.yml
-
-  roles:
-     #- start-docker [tbd]
-     #- start-concourse [tbd]
+      sudo: True
+#     shell: fly -t concourse login -c http://192.168.100.4:8080
+      shell: fly -t concourse set-pipeline -p hello-git -c ./staas-playground/concourse-docker/hello-git.yaml 
