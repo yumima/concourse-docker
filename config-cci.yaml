@@ -34,9 +34,6 @@
       shell: docker pull concourse/concourse 
       sudo: True
 
-    - copy: src=./dci.sh dest={{user_home}}/dci.sh
-    - copy: src=./template.yaml dest={{user_home}}/template.yaml
-
     - name: allow port 8080
       local_action: gce_net
       args:
@@ -48,11 +45,22 @@
         credentials_file: "{{credentials_file}}"
         project_id: "{{project_id}}"
 
-    - name:  run dci to setup keys and start concourse
-      shell: cd /home/yumima; ./dci.sh
-    
+ 
+    - name: copy key files
+      copy:
+        src=credentials.yml
+        dest=./
+ 
+#    - name: pull code from git 
+#      git: 
+#        repo=https://github.com/cisco-cis/staas-playground.git 
+#        dest=./ 
+#        key_file=./credentials.yml
+#        accept_hostkey=yes 
+#        force=yes
+
     - name: generate docker-compose.yaml
-      shell: source -y dci.sh; rm -rf docker-compose.yaml; envsubst < "template.yaml" > "docker-compose.yaml"
+      shell: source -y ./staas-playground/concourse-docker/dci.sh; rm -rf docker-compose.yaml; envsubst < "template.yaml" > "docker-compose.yaml"
 
     - name: start concourse docker
       shell: docker-compose up -d
@@ -61,10 +69,12 @@
     - name: install fly
       get_url: 
         url: http://104.198.235.44:8080/api/v1/cli?arch=amd64&platform=linux
-        dest: ./fly
+        dest: /usr/local/bin
         mode: 0766
 
-    - copy: src=./hello-git.yaml dest={{user_home}}/hello-git.yaml
+    - name: run hello-git pipeline
+#      shell: fly -t concourse login -c http://192.168.100.4:8080
+      shell: fly -t concourse set-pipeline --pipeline hello-git --config ./staas-playground/concourse-docker/hello-git.yaml --load-vars-from ./staas-playground/ci/credentials.yml
 
   roles:
      #- start-docker [tbd]
