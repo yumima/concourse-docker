@@ -14,6 +14,9 @@
     user_home: "{{ lookup('env', 'USER_HOME') }}"
 
   tasks:
+    - name: get host IP
+      shell: wget -qO- http://ipecho.net/plain ; echo
+      register: host_ip
 
     - name: Install docker 
       apt: pkg=docker state=latest
@@ -27,6 +30,14 @@
       apt: pkg=postgresql state=latest
       sudo: True
 
+    - name: Install pip
+      apt: pkg=python-pip state=latest
+      sudo: True
+
+    - name: Install Python esentials
+      apt: pkg=python-ipaddress  state=latest
+      sudo: True
+
     - name: start docker service
       shell: sudo systemctl start docker
 
@@ -34,33 +45,26 @@
       shell: docker pull concourse/concourse 
       sudo: True
 
+    - copy: src=./dci.sh dest={{user_home}}/dci.sh mode=0766
+    - copy: src=./template.yaml dest={{user_home}}/template.yaml
+
     - name: allow port 8080
       local_action: gce_net
       args:
         name: default
         fwname: allow-http
-        allowed: tcp:80,8080
+        allowed: tcp:8080
         ipv4_range: 0.0.0.0/24
         service_account_email: "{{service_account_email}}"
         credentials_file: "{{credentials_file}}"
         project_id: "{{project_id}}"
 
- 
-    - name: copy key files
-      copy:
-        src=credentials.yml
-        dest=./
- 
-#    - name: pull code from git 
-#      git: 
-#        repo=https://github.com/cisco-cis/staas-playground.git 
-#        dest=./ 
-#        key_file=./credentials.yml
-#        accept_hostkey=yes 
-#        force=yes
-
+    - name:  run dci to setup keys and start concourse
+      shell: cd /home/yumima; ./dci.sh
+      sudo: True
+    
     - name: generate docker-compose.yaml
-      shell: source -y ./staas-playground/concourse-docker/dci.sh; rm -rf docker-compose.yaml; envsubst < "template.yaml" > "docker-compose.yaml"
+      shell: source -y dci.sh; rm -rf docker-compose.yaml; envsubst < "template.yaml" > "docker-compose.yaml"
 
     - name: start concourse docker
       shell: docker-compose up -d
@@ -68,11 +72,12 @@
 
     - name: install fly
       get_url: 
-        url: http://104.198.235.44:8080/api/v1/cli?arch=amd64&platform=linux
-        dest: /usr/local/bin
+        url: http://{{host_ip}}:8080/api/v1/cli?arch=amd64&platform=linux
+        dest: /usr/local/bin 
         mode: 0766
 
-    - name: run hello-git pipeline
-      sudo: True
-#     shell: fly -t concourse login -c http://192.168.100.4:8080
-      shell: fly -t concourse set-pipeline -p hello-git -c ./staas-playground/concourse-docker/hello-git.yaml 
+    - copy: src=./hello-git.yaml dest={{user_home}}/hello-git.yaml
+
+  roles:
+     #- start-docker [tbd]
+     #- start-concourse [tbd]
